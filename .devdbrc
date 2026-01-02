@@ -1,0 +1,6 @@
+[
+  {
+    "type": "sqlite",
+    "path": "c:\\Users\\UBS\\Desktop\\nextjs-prisma\\dev.db"
+  }
+]
