@@ -1,8 +1,16 @@
-import React from 'react'
+"use client"
+
+import { useFormStatus } from "react-dom"
 
 const addForm = () => {
+
+  const BtnSubmit = () => {
+    const { pending } = useFormStatus()
+    return <button disabled={pending} className="btn bg-blue-500 hover:bg-blue-600">{pending ? 'Création en cours ...' : 'Ajouter'}</button>
+  }
+
   return (
-    <div className='btn btn-primary'>addForm</div>
+    <>Text</>
   )
 }
 
