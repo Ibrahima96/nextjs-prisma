@@ -7,7 +7,7 @@ const addForm = () => {
 
   const BtnSubmit = () => {
     const { pending } = useFormStatus()
-    return <button type="submit" disabled={pending} className="btn btn-md  bg-blue-500 hover:bg-blue-600">{pending ? 'Création en cours ...' : 'Ajouter'}</button>
+    return <button type="submit" disabled={pending} className="btn btn-md  bg-blue-500 hover:bg-blue-600 text-gray-100">{pending ? 'Création en cours ...' : 'Ajouter'}</button>
   }
 
   return (
