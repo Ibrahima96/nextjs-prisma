@@ -38,65 +38,84 @@ import prisma from "./prisma"
 
 // RÉCUPÉRER TOUTES LES TÂCHES
 export const getAllTasks = async () => {
-    const allTasks = await prisma.task.findMany({
-        orderBy: {
-            createAt: "desc" // Les plus récentes en premier
-        }
-    })
-    return allTasks
+    try {
+        const allTasks = await prisma.task.findMany({
+            orderBy: {
+                createAt: "desc" // Les plus récentes en premier
+            }
+        })
+        return allTasks
+    } catch (error) {
+        console.error("Erreur lors de la récupération des tâches:", error)
+        return []
+    }
 }
 
 // CRÉER UNE TÂCHE
 export const createTasks = async (formData: FormData) => {
-    // Simulation d'un délai de 2 secondes
-    await new Promise((resolve) => setTimeout(resolve, 2000))
-    const task = formData.get('task') as string
+    try {
+        await new Promise((resolve) => setTimeout(resolve, 2000))
+        const task = formData.get('task') as string
 
-    if (!task.trim()) return // Empêche les tâches vides
+        if (!task.trim()) return
 
-    await prisma.task.create({
-        data: {
-            content: task
-        }
-    })
-    revalidatePath('/') // Met à jour la liste sur l'accueil
+        await prisma.task.create({
+            data: {
+                content: task
+            }
+        })
+        revalidatePath('/')
+    } catch (error) {
+        console.error("Erreur lors de la création de la tâche:", error)
+    }
 }
 
 // SUPPRIMER UNE TÂCHE
 export const deleteTasks = async (formData: FormData) => {
-    const id = formData.get('id') as string
-    await prisma.task.delete({
-        where: { id: Number(id) } // Conversion string -> number
-    })
-    revalidatePath('/')
+    try {
+        const id = formData.get('id') as string
+        await prisma.task.delete({
+            where: { id: Number(id) }
+        })
+        revalidatePath('/')
+    } catch (error) {
+        console.error("Erreur lors de la suppression de la tâche:", error)
+    }
 }
 
 // RÉCUPÉRER UNE SEULE TÂCHE (pour la modif)
 export const getTasks = async (id: string) => {
-    const task = await prisma.task.findUnique({
-        where: { id: Number(id) }
-    })
-    return task
+    try {
+        const task = await prisma.task.findUnique({
+            where: { id: Number(id) }
+        })
+        return task
+    } catch (error) {
+        console.error("Erreur lors de la récupération de la tâche:", error)
+        return null
+    }
 }
 
 // METTRE À JOUR UNE TÂCHE
 export const updateTask = async (formData: FormData) => {
-    const id = formData.get('id') as string
-    const content = formData.get("content") as string
-    
-    // Checkbox HTML : "on" si coché, sinon undefined
-    const completed = formData.get("completed") === "on"
+    try {
+        const id = formData.get('id') as string
+        const content = formData.get("content") as string
+        const completed = formData.get("completed") === "on"
 
-    await prisma.task.update({
-        where: { id: Number(id) },
-        data: {
-            content,
-            completed
-        }
-    })
+        await prisma.task.update({
+            where: { id: Number(id) },
+            data: {
+                content,
+                completed
+            }
+        })
 
-    revalidatePath('/')
-    redirect('/') // Retour à l'accueil après modification
+        revalidatePath('/')
+    } catch (error) {
+        console.error("Erreur lors de la mise à jour de la tâche:", error)
+    }
+    redirect('/')
 }
 ```
 
@@ -205,18 +224,147 @@ export default page
 
 ## 🧩 5. Composants Clés (`components/`)
 
-### `<AddForm />` (Client Component)
-*   Formulaire d'ajout rapide en haut de la page.
-*   Affiche un bouton de chargement pendant la création.
+### A. `<AddForm />` (`components/addForm.tsx`)
+Composant client pour l'ajout de tâches avec gestion du statut de chargement.
 
-### `<TasksTabs />` (Server Component)
-*   Tableau DaisyUI affichant la liste des tâches.
-*   **Badges dynamiques :** Affiche "complète" (bleu) ou "en cours" (neutre) selon l'état `completed`.
-*   Contient les boutons de navigation vers la modification et le bouton de suppression.
+```tsx
+"use client"
+import React from 'react'
+import { createTasks } from '@/lib/action'
+import { useFormStatus } from 'react-dom'
 
-### `<DeleteBtn />`
-*   Composant client contenant un formulaire avec un bouton poubelle.
-*   Envoie l'ID caché au serveur pour la suppression.
+const AddForm = () => {
+  const BtnSubmit = () => {
+    const { pending } = useFormStatus()
+    return (
+      <button 
+        type="submit" 
+        disabled={pending} 
+        className="btn btn-md bg-blue-500 hover:bg-blue-600 text-gray-100"
+      >
+        {pending ? 'Création en cours ...' : 'Ajouter'}
+      </button>
+    )
+  }
+
+  return (
+    <div className='flex items-center justify-center p-10 bg-zinc-50'>
+      <form action={createTasks} className='flex items-center gap-2'>
+        <input 
+          name='task' 
+          type="text" 
+          placeholder="Entrer une tâche" 
+          className="input input-bordered w-full max-w-xs bg-white text-zinc-800" 
+        />
+        <BtnSubmit />
+      </form>
+    </div>
+  )
+}
+
+export default AddForm
+```
+
+### B. `<TasksTabs />` (`components/TasksTabs.tsx`)
+Composant serveur qui affiche le tableau des tâches.
+
+```tsx
+import React from 'react'
+import { getAllTasks } from '@/lib/action'
+import DeleteBtn from './DeleteBtn'
+import UpdateBtn from './UpdateBtn'
+import Link from 'next/link'
+
+const TasksTabs = async () => {
+    const allTasks = await getAllTasks()
+
+    return (
+        <div className="overflow-x-auto w-full px-20">
+            <table className="table bg-white shadow-sm border border-zinc-200 rounded-lg">
+                <thead className='bg-zinc-100 text-zinc-600 uppercase text-xs'>
+                    <tr>
+                        <th>ID</th>
+                        <th>Tâche</th>
+                        <th>Créée le</th>
+                        <th>Statut</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody className='text-zinc-700'>
+                    {allTasks.map(({ id, content, createAt, completed }) => (
+                        <tr key={id} className='hover:bg-zinc-50 border-b border-zinc-100'>
+                            <th>{id}</th>
+                            <td>{content}</td>
+                            <td>{createAt.toLocaleString()}</td>
+                            <td>
+                                {completed ? (
+                                    <span className='badge py-4 badge-outline badge-primary text-sm'>complète</span>
+                                ) : (
+                                    <span className='py-4 text-sm badge badge-outline'>en cours</span>
+                                )}
+                            </td>
+                            <td className='flex items-center gap-2'>
+                                <Link href={`task/${id}`}>
+                                    <UpdateBtn />
+                                </Link>
+                                <DeleteBtn id={id} />
+                            </td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+        </div>
+    )
+}
+
+export default TasksTabs
+```
+
+### C. `<DeleteBtn />` (`components/DeleteBtn.tsx`)
+Bouton de suppression utilisant une Server Action.
+
+```tsx
+"use client"
+import React from 'react'
+import { deleteTasks } from '@/lib/action'
+import { Trash2 } from 'lucide-react'
+
+const DeleteBtn = ({ id }: { id: number }) => {
+    return (
+        <form action={deleteTasks}>
+            <input type="hidden" name="id" value={id} />
+            <button className='btn btn-ghost btn-sm text-red-500 hover:bg-red-50'>
+                <Trash2 size={18} />
+            </button>
+        </form>
+    )
+}
+
+export default DeleteBtn
+```
+
+### D. `<UpdateBtn />` (`components/UpdateBtn.tsx`)
+Simple bouton d'icon pour l'édition.
+
+```tsx
+import React from 'react'
+import { SquarePen } from 'lucide-react'
+
+const UpdateBtn = () => {
+  return (
+    <div className='btn btn-ghost btn-sm text-blue-500 hover:bg-blue-50'>
+        <SquarePen size={18} />
+    </div>
+  )
+}
+
+export default UpdateBtn
+```
+
+---
+
+## 💡 6. Concepts Importants à Retenir pour NotebookLM
+... (le reste du document inchangé)
 
 ---
 
