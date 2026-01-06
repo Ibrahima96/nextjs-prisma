@@ -45,10 +45,10 @@ const TasksTabs = async () => {
                     <th>{id}</th>
                     <td>{content}</td>
                     <td>{createAt.toLocaleString()}</td>
-                    <td>{completed ? 'ok' : 'non'}</td>
+                    <td className='items-center'>{completed ? <span className='badge py-4 badge-outline badge-primary text-sm'>compléte</span> : <span className='py-4 text-sm badge badge-outline '>en cours</span>}</td>
                     <td
                       className='flex items-center gap-2'>
-                      <UpdateBtn />
+                      <Link href={`task/${id}`}> <UpdateBtn /></Link>
                       <DeleteBtn id={id} />
                     </td>
                   </tr>

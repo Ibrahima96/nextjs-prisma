@@ -1,8 +1,7 @@
-import React from 'react'
 
 const UpdateBtn = () => {
   return (
-    <div>UpdateBtn</div>
+    <button className="btn btn-soft btn-primary ">Edit</button>
   )
 }
 
