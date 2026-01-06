@@ -1,19 +1,19 @@
 "use client"
 
-import { creatTasts } from "@/lib/action"
+import { createTasks } from "@/lib/action"
 import { useFormStatus } from "react-dom"
 
 const addForm = () => {
 
   const BtnSubmit = () => {
     const { pending } = useFormStatus()
-    return <button type="submit" disabled={pending} className="btn bg-blue-500 hover:bg-blue-600">{pending ? 'Création en cours ...' : 'Ajouter'}</button>
+    return <button type="submit" disabled={pending} className="btn btn-md  bg-blue-500 hover:bg-blue-600">{pending ? 'Création en cours ...' : 'Ajouter'}</button>
   }
 
   return (
-    <form className="max-w-4xl flex items-center mb-3" action={creatTasts}>
-      <input type="text" name="task" placeholder="tache .." className="input "/>
-
+    <form className="flex items-center w-2xl mb-4 max-w-full gap-2" action={createTasks}>
+      <input type="text" name="task" placeholder="tache .." className="input w-full " required />
+      <BtnSubmit />
     </form>
   )
 }

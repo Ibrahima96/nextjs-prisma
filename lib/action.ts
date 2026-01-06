@@ -11,11 +11,12 @@ export const getAllTasks = async () => {
 
     return allTasks
 }
-export const creatTasts = async (formData: FormData) => {
-    
+export const createTasks = async (formData: FormData) => {
+
     await new Promise((resolve) => setTimeout(resolve, 2000))
     const task = formData.get('task') as string
 
+    if (!task.trim()) return 
     await prisma.task.create({
         data: {
             content: task
