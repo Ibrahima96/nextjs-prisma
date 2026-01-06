@@ -1,7 +1,11 @@
+import { deleteTasks } from "@/lib/action"
 
-const DeleteBtn = () => {
+const DeleteBtn = ({ id }: { id: string | number }) => {
   return (
-    <div>DeleteBtn</div>
+    <form action={deleteTasks}>
+      <input type="hidden" name='id' value={id} />
+      <button className="btn btn-soft btn-error hover:text-gray-500">delete</button>
+    </form>
   )
 }
 

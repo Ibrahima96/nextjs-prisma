@@ -48,8 +48,8 @@ const TasksTabs = async () => {
                     <td>{completed ? 'ok' : 'non'}</td>
                     <td
                       className='flex items-center gap-2'>
-                      <Link href={`task/${id}`} className='text-primary'><UpdateBtn/></Link>
-                      <Link href={`task/${id}`} className='text-error'><DeleteBtn/></Link>
+                      <UpdateBtn />
+                      <DeleteBtn id={id} />
                     </td>
                   </tr>
                 ))}

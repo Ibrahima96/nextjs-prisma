@@ -16,11 +16,19 @@ export const createTasks = async (formData: FormData) => {
     await new Promise((resolve) => setTimeout(resolve, 2000))
     const task = formData.get('task') as string
 
-    if (!task.trim()) return 
+    if (!task.trim()) return
     await prisma.task.create({
         data: {
             content: task
         }
+    })
+    revalidatePath('/')
+}
+
+export const deleteTasks = async (formData: FormData) => {
+    const id = formData.get('id') as string
+    await prisma.task.delete({
+        where: { id: Number(id) }
     })
     revalidatePath('/')
 }
